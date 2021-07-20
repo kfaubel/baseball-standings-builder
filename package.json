@@ -1,6 +1,6 @@
 {
   "name": "baseball-standings-builder",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Create jpegs with baseball standings",
   "main": "index.js",
   "scripts": {
