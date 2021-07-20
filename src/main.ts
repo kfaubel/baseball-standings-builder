@@ -16,7 +16,7 @@ async function run() {
     if (result !== null && result.jpegImg !== null ) {
         fs.writeFileSync('image.jpg', result.jpegImg.data);
     } else {
-        logger.error("main: no jpegImg returned from weatherImage.getImageStream");
+        logger.error("main: no jpegImg returned from baseballStandingsImage.getImageStream");
         process.exit(1);
     }
     
