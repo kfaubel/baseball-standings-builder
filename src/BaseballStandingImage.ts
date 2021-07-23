@@ -27,7 +27,7 @@ export class BaseballStandingsImage {
 
         const standingsArray: StandingJSON = await  this.standingsData.getStandingData();
 
-        if (this.standingsData === undefined) {
+        if (standingsArray === undefined) {
             this.logger.warn("BaseballStandingsImage: Failed to get data, no image available.\n")
             return null;
         }
