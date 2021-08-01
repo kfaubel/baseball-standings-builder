@@ -1,89 +1,102 @@
-import stream from 'stream';
-import jpeg from 'jpeg-js';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import jpeg from "jpeg-js";
+import path from "path";
 
-const pure = require('pureimage');
+import * as pure from "pureimage";
 
-import { BaseballStandingsData, StandingJSON, Conference, Division, TeamData } from './BaseballStandingData';
+import { BaseballStandingsData, Conferences, Divisions, TeamData } from "./BaseballStandingData";
+import { Logger } from "./Logger";
 
-const fontDir = __dirname + "/../fonts";
+export interface ImageResult {
+    expires: string;
+    imageType: string;
+    imageData: jpeg.BufferRet | null;
+}
 
 export class BaseballStandingsImage {
-    private standingsData: any;
+    private standingsData: BaseballStandingsData;
 
-    private logger;
+    private logger: Logger;
+    private dirname: string;
 
-    constructor(logger: any) {
+    constructor(logger: Logger, dirname: string) {
         this.logger = logger;
+        this.dirname = dirname;
+
+        this.standingsData = new BaseballStandingsData(this.logger);
     }
 
-    public setLogger(logger: any) {
-        this.logger = logger;
-    }
-
-    public async getImageStream(conf: string, div: string) {
-        const title: string = `${conf} ${div}`;
-        
+    public async getImageStream(conf: keyof Conferences, div: keyof Divisions): Promise<ImageResult> {
+        let title: string;
+        if      (div === "E") { title = `${conf} EAST`;}
+        else if (div === "C") { title = `${conf} CENTRAL`;}
+        else if (div === "W") { title = `${conf} WEST`;}
+        else {
+            this.logger.error(`BaseballStandingsImage: bad division: ${div}`); 
+            return {expires: "", imageType: "", imageData: null};
+        }
+       
         this.standingsData = new BaseballStandingsData(this.logger);
 
-        const standingsArray: StandingJSON = await  this.standingsData.getStandingData();
+        const standingsArray: Conferences | null = await this.standingsData.getStandingsData();
 
-        if (standingsArray === undefined) {
-            this.logger.warn("BaseballStandingsImage: Failed to get data, no image available.\n")
-            return null;
+        if (standingsArray === null) {
+            this.logger.warn("BaseballStandingsImage: Failed to get data, no image available.\n");
+            return {expires: "", imageType: "", imageData: null};
         }
 
-        const imageHeight: number = 1080; // 800;
-        const imageWidth: number  = 1920; // 1280;
+        const imageHeight = 1080; 
+        const imageWidth  = 1920; 
 
-        const backgroundColor: string     = 'rgb(105, 135,  135)';  // Fenway Green
-        const boxBackgroundColor: string  = 'rgb(95,  121,  120)';  // Fenway Green - Dark p.setColor(Color.rgb(0x5F, 0x79, 0x78));
-        const titleColor: string          = 'rgb(255, 255,  255)'; 
-        const borderColor: string         = 'rgb(255, 255,  255)';
+        const backgroundColor     = "rgb(105, 135,  135)";  // Fenway Green
+        const boxBackgroundColor  = "rgb(95,  121,  120)";  // Fenway Green - Dark p.setColor(Color.rgb(0x5F, 0x79, 0x78));
+        const titleColor          = "rgb(255, 255,  255)"; 
+        const borderColor         = "rgb(255, 255,  255)";
         
-        const largeFont: string  = "140px 'OpenSans-Bold'";   // Title
-        const mediumFont: string = "100px 'OpenSans-Bold'";   // Other text
-        const smallFont: string  = "24px 'OpenSans-Bold'";   
+        const largeFont  = "140px 'OpenSans-Bold'";   // Title
+        const mediumFont = "100px 'OpenSans-Bold'";   // Other text
+        const smallFont  = "24px 'OpenSans-Bold'";   
 
-        const fntBold     = pure.registerFont(fontDir + '/OpenSans-Bold.ttf','OpenSans-Bold');
-        const fntRegular  = pure.registerFont(fontDir + '/OpenSans-Regular.ttf','OpenSans-Regular');
-        const fntRegular2 = pure.registerFont(fontDir + '/alata-regular.ttf','alata-regular');
-
+        const fntBold = pure.registerFont(path.join(this.dirname, "..", "fonts", "OpenSans-Bold.ttf"),"OpenSans-Bold");
+        const fntRegular = pure.registerFont(path.join(this.dirname, "..", "fonts", "OpenSans-Regular.ttf"),"OpenSans-Regular");
+        const fntRegular2 = pure.registerFont(path.join(this.dirname, "..", "fonts", "alata-regular.ttf"),"alata-regular");
+        
         fntBold.loadSync();
         fntRegular.loadSync();
         fntRegular2.loadSync();
 
-        const regularStroke: number     = 2;
-        const heavyStroke: number       = 30;
-        const veryHeavyStroke: number   = 22;
-        const borderWidth: number       = 20;
+        const regularStroke     = 2;
+        const heavyStroke       = 30;
+        const veryHeavyStroke   = 22;
+        const borderWidth       = 20;
 
-        const titleOffset: number       = 140; // down from the top of the image
-        const labelOffsetTop: number    = 260;    
+        const titleOffset       = 140; // down from the top of the image
+        const labelOffsetTop    = 260;    
 
-        const boxHeight: number         = 130;  // fillRect draws below the start point
-        const rowOffsetY: number        = 290;  // 280 is upper left, fillRect draws down, fillText will need add boxHeight to get lower left 
-        const rowSpacing: number        = 155;
+        const boxHeight         = 130;  // fillRect draws below the start point
+        const rowOffsetY        = 290;  // 280 is upper left, fillRect draws down, fillText will need add boxHeight to get lower left 
+        const rowSpacing        = 155;
 
-        const cityOffsetX: number       = 50;
-        const wonOffsetX: number        = 950;
-        const lostOffsetX: number       = 1160;
-        const gamesBackOffsetX: number  = 1360;
-        const gamesHalfOffsetX: number  = 1500; // This touches and extends the games back box
-        const lastTenOffsetX: number    = 1650
+        const cityOffsetX       = 50;
+        const wonOffsetX        = 950;
+        const lostOffsetX       = 1160;
+        const gamesBackOffsetX  = 1360;
+        const gamesHalfOffsetX  = 1500; // This touches and extends the games back box
+        const lastTenOffsetX    = 1650;
 
         const textOffsetInBoxY: number  = (boxHeight - 32); // text orgin is lower right and we want it up a bit more to center vertically in box
         
-        const cityBoxWidth: number      = 850;
-        const wonBoxWidth: number       = 170;
-        const lostBoxWidth: number      = 170;
-        const gamesBackBoxWidth: number = 140;  // if a team is 2.5 games back, gamesBack will be "2"
-        const gamesHalfBoxWidth: number = 120;  //                              gamesHalf will be a '1/2' char
-        const lastTenBoxWidth: number   = 210;
+        const cityBoxWidth      = 850;
+        const wonBoxWidth       = 170;
+        const lostBoxWidth      = 170;
+        const gamesBackBoxWidth = 140;  // if a team is 2.5 games back, gamesBack will be "2"
+        const gamesHalfBoxWidth = 120;  //                              gamesHalf will be a '1/2' char
+        const lastTenBoxWidth   = 210;
 
-        const cityTextOffsetX: number   = 20;   // Set the left spacing to 20 pixels, other fields are centered.
+        const cityTextOffsetX   = 20;   // Set the left spacing to 20 pixels, other fields are centered.
 
         const img = pure.make(imageWidth, imageHeight);
-        const ctx = img.getContext('2d');
+        const ctx = img.getContext("2d");
 
         // Fill the bitmap
         ctx.fillStyle = backgroundColor;
@@ -128,24 +141,16 @@ export class BaseballStandingsImage {
             ctx.fillRect(lastTenOffsetX,   rowOffsetY + row * rowSpacing,  lastTenBoxWidth,   boxHeight);
         }
 
-        // The data uses a single letter for the division so assign it here.
-        let dv: string = "E";
-        if (div === "CENTRAL") {
-            dv = "C";
-        } else if (div === "WEST") {
-            dv = "W"
-        }
-
         // Now fill in the text in each row for the conf and div specified
         ctx.fillStyle = titleColor;
         ctx.font = mediumFont;
         for (let i = 0; i < 5; i++) {
-            const city      = `${standingsArray[conf][dv][i].city}`;
-            const won       = `${standingsArray[conf][dv][i].won}`;
-            const lost      = `${standingsArray[conf][dv][i].lost}`;
-            let   gamesBack = `${standingsArray[conf][dv][i].games_back}`;
-            let   gamesHalf = `${standingsArray[conf][dv][i].games_half}`;
-            const lastTen   = `${standingsArray[conf][dv][i].last_ten}`;
+            const city      = `${standingsArray[conf][div][i].city}`;
+            const won       = `${standingsArray[conf][div][i].won}`;
+            const lost      = `${standingsArray[conf][div][i].lost}`;
+            let   gamesBack = `${standingsArray[conf][div][i].games_back}`;
+            let   gamesHalf = `${standingsArray[conf][div][i].games_half}`;
+            const lastTen   = `${standingsArray[conf][div][i].last_ten}`;
 
             if (gamesBack === "0") gamesBack = "-";
             gamesHalf =  (gamesHalf === "1") ? "\u00BD" : "";  // we will show a '1/2' char or nothing
@@ -170,19 +175,12 @@ export class BaseballStandingsImage {
         const expires = new Date();
         expires.setHours(expires.getHours() + 12);
 
-        const jpegImg = await jpeg.encode(img, 50);
-
-        const jpegStream = new stream.Readable({
-            read() {
-                this.push(jpegImg.data);
-                this.push(null);
-            }
-        })
+        const jpegImg = jpeg.encode(img, 50);
         
         return {
-            jpegImg: jpegImg,
-            stream:  jpegStream,
+            imageData: jpegImg,
+            imageType: "jpg",
             expires: expires.toUTCString()
-        }
+        };
     }
 }

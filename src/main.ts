@@ -1,20 +1,19 @@
-import fs from 'fs';
-import { BaseballStandingsImage } from './BaseballStandingImage';
+import fs from "fs";
+import { BaseballStandingsImage, ImageResult } from "./BaseballStandingImage";
 import { Logger } from "./Logger";
 
-// Create a new express application instance
 async function run() {
     const logger: Logger = new Logger("standings-builder"); 
    
-    const baseballStandingsImage = new BaseballStandingsImage(logger);
+    const baseballStandingsImage = new BaseballStandingsImage(logger, __dirname);
     
-    const result = await baseballStandingsImage.getImageStream("AL", "EAST");
+    const result: ImageResult = await baseballStandingsImage.getImageStream("AL", "E");
     
     // We now get result.jpegImg
-    logger.info(`Main: Writing: image.jpg`);
+    logger.info("Main: Writing: image.jpg");
 
-    if (result !== null && result.jpegImg !== null ) {
-        fs.writeFileSync('image.jpg', result.jpegImg.data);
+    if (result !== null && result.imageData !== null ) {
+        fs.writeFileSync("image.jpg", result.imageData.data);
     } else {
         logger.error("main: no jpegImg returned from baseballStandingsImage.getImageStream");
         process.exit(1);

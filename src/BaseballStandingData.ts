@@ -1,5 +1,7 @@
-import axios from 'axios';
+import axios from "axios";
+import { Logger } from "./Logger";
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 const testJSONData = require(__dirname + "/../sample-standings.json");
 
 // returned JSON
@@ -25,100 +27,91 @@ interface RawStanding {
     last_ten: string;
 }
 
-export interface StandingJSON {
-    AL: Conference;
-    NL: Conference;
+export interface Conferences {
+    "AL": Divisions;
+    "NL": Divisions;
 }
 
-export interface Conference {
-    E: Division;
-    C: Division;
-    W: Division;
-}
-
-export interface Division {
-    0: {};
-    1: {};
-    2: {};
-    3: {};
-    4: {};
+export interface Divisions {
+    "E": Array<TeamData>;
+    "C": Array<TeamData>;
+    "W": Array<TeamData>;
 }
 
 export interface TeamData {
-    city: string;
-    won: number;
-    lost: number;
-    games_back: number;
-    games_half: number;
-    last_ten: string;
-}
-
-const standingsJSON: StandingJSON = {
-    AL: {
-        E: { 0: {}, 1: {}, 2: {}, 3: {}, 4: {}, },
-        C: { 0: {}, 1: {}, 2: {}, 3: {}, 4: {}, },
-        W: { 0: {}, 1: {}, 2: {}, 3: {}, 4: {}, },
-    },
-    NL: {
-        E: { 0: {}, 1: {}, 2: {}, 3: {}, 4: {}, },
-        C: { 0: {}, 1: {}, 2: {}, 3: {}, 4: {}, },
-        W: { 0: {}, 1: {}, 2: {}, 3: {}, 4: {}, },
-    }
+    city?: string;
+    won?: number;
+    lost?: number;
+    games_back?: number;
+    games_half?: number;
+    last_ten?: string;
 }
 
 export class BaseballStandingsData {
-    private logger;
+    private logger: Logger;
 
-    constructor(logger: any) {
+    constructor(logger: Logger) {
         this.logger = logger;
     }    
 
-    public async getStandingData() {
+    public async getStandingsData(): Promise<Conferences | null> {
 
-        let test:boolean = true; // Don't hit real server while developing
+        //const conferences: 
+        const conferences: Conferences = {
+            "AL": {
+                "E": [],
+                "C": [],
+                "W": [],
+            },
+            "NL": {
+                "E": [],
+                "C": [],
+                "W": [],
+            }
+        };
 
-        const url: string = `https://erikberg.com/mlb/standings.json`;
+        const test = true; // Don't hit real server while developing
+
+        const url = "https://erikberg.com/mlb/standings.json";
         
         let rawJson: RawJson = {standing: []};
 
         if (test) {
-            this.logger.log(`BaseballStandingsData: Using test data`);  
+            this.logger.log("BaseballStandingsData: Using test data");  
             rawJson = testJSONData;
         } else {
-            await axios.get(url)
-                .then((response: any) => {
-                    rawJson = response.data;
-                })
-                .catch((error: any) => {
-                    this.logger.error("BaseballStandingsData: Error getting data: " + error);
-                });
+            try {
+                const response = await axios.get(url);
+                rawJson = response.data;
+            } catch (e) {
+                this.logger.error(`BaseballStandingsData: Error getting data: ${e}`);
+                return null;
+            }
         }
 
-        // Loop through all the stands looking for ones that match the conference and division
-        // Results are in standings order.  The ranks may show 1, 2, 2, 4, 5 if two teams are tied.
-        for (const conf in standingsJSON) {
-            for (const div in standingsJSON[conf]) {
-                let index: number = 0;
-                for (let aTeam of rawJson.standing) {
-                    if (aTeam.conference === conf && aTeam.division === div) {
-                        const teamData: TeamData = {
-                            city:       aTeam.first_name,
-                            won:        aTeam.won,
-                            lost:       aTeam.lost,
-                            games_back: Math.floor(aTeam.games_back),
-                            games_half: (Math.floor(aTeam.games_back) === aTeam.games_back) ? 0 : 1,
-                            last_ten:   aTeam.last_ten,
-                        }
-            
-                        standingsJSON[conf][div][index] = teamData;
-                        index++;
-                    }
-                }
-            }
+        // Loop through all the teams adding them to the division within each conference
+        // Teams are given in the order of standing within each conference/division (1 2 3 4 5  or  1 2 2 3 4)
+        try {
+            for (let index = 0; index < 30; index++) {
+                const aTeam: RawStanding  = rawJson.standing[index];
+                
+                const teamData: TeamData = {
+                    city:       aTeam.first_name,
+                    won:        aTeam.won,
+                    lost:       aTeam.lost,
+                    games_back: Math.floor(aTeam.games_back),
+                    games_half: (Math.floor(aTeam.games_back) === aTeam.games_back) ? 0 : 1,
+                    last_ten:   aTeam.last_ten,
+                };
+                // Typescript will have to take our word for it that aTeam conference/division are keys.  Exception otherwise
+                conferences[aTeam.conference as keyof Conferences][aTeam.division as keyof Divisions].push(teamData);          }
+        } catch (e) {        
+            this.logger.error(`BaseballStandingsData: Error parsing data: ${e}`);
+            return null;
         }
 
         // this.logger.verbose(`BaseballStandingsData: Full: ${JSON.stringify(standingsJSON, null, 4)}`);
 
-        return standingsJSON;
+        return conferences;
     }
 }
