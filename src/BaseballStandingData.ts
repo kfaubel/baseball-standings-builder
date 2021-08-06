@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Logger } from "./Logger";
+import { Cache } from "./Cache";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const testJSONData = require(__dirname + "/../sample-standings.json");
@@ -49,15 +50,23 @@ export interface TeamData {
 
 export class BaseballStandingsData {
     private logger: Logger;
+    private cache: Cache;
 
-    constructor(logger: Logger) {
+    constructor(logger: Logger, cache: Cache) {
         this.logger = logger;
+        this.cache = cache;
     }    
 
+    
     public async getStandingsData(): Promise<Conferences | null> {
 
+        let conferences: Conferences | null = this.cache.get("standings") as Conferences;
+        if (conferences !== null) {
+            return conferences;
+        }
+
         //const conferences: 
-        const conferences: Conferences = {
+        conferences = {
             "AL": {
                 "E": [],
                 "C": [],
@@ -70,7 +79,7 @@ export class BaseballStandingsData {
             }
         };
 
-        const test = true; // Don't hit real server while developing
+        const test = false; // Don't hit real server while developing
 
         const url = "https://erikberg.com/mlb/standings.json";
         
@@ -81,7 +90,7 @@ export class BaseballStandingsData {
             rawJson = testJSONData;
         } else {
             try {
-                const response = await axios.get(url);
+                const response = await axios.get(url, {headers: {"Content-Encoding": "gzip"}});
                 rawJson = response.data;
             } catch (e) {
                 this.logger.error(`BaseballStandingsData: Error getting data: ${e}`);
@@ -110,6 +119,12 @@ export class BaseballStandingsData {
             return null;
         }
 
+        // This expires at 4AM tomorrow
+        const tomorrow: Date = new Date();
+        tomorrow.setDate(tomorrow.getDate() +1);
+        tomorrow.setHours(4, 0, 0, 0);
+        this.cache.set("standings", conferences, tomorrow.getTime());
+        
         // this.logger.verbose(`BaseballStandingsData: Full: ${JSON.stringify(standingsJSON, null, 4)}`);
 
         return conferences;

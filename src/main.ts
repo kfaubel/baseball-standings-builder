@@ -1,11 +1,13 @@
 import fs from "fs";
 import { BaseballStandingsImage, ImageResult } from "./BaseballStandingImage";
 import { Logger } from "./Logger";
+import { Cache } from "./Cache";
 
 async function run() {
-    const logger: Logger = new Logger("standings-builder"); 
+    const logger: Logger = new Logger("standings-builder", "verbose"); 
+    const cache: Cache = new Cache(logger, "baseball-standings-cache.json");
    
-    const baseballStandingsImage = new BaseballStandingsImage(logger, __dirname);
+    const baseballStandingsImage = new BaseballStandingsImage(logger, __dirname, cache);
     
     const result: ImageResult = await baseballStandingsImage.getImageStream("AL", "E");
     
