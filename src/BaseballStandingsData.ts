@@ -1,6 +1,6 @@
 import axios from "axios";
-import { Logger } from "./Logger";
-import { Cache } from "./Cache";
+import { LoggerInterface } from "./Logger";
+import { KacheInterface } from "./Kache";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const testJSONData = require(__dirname + "/../sample-standings.json");
@@ -49,14 +49,13 @@ export interface TeamData {
 }
 
 export class BaseballStandingsData {
-    private logger: Logger;
-    private cache: Cache;
+    private logger: LoggerInterface;
+    private cache: KacheInterface;
 
-    constructor(logger: Logger, cache: Cache) {
+    constructor(logger: LoggerInterface, cache: KacheInterface) {
         this.logger = logger;
         this.cache = cache;
     }    
-
     
     public async getStandingsData(): Promise<Conferences | null> {
 

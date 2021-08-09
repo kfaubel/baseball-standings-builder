@@ -1,12 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import jpeg from "jpeg-js";
 import path from "path";
-
 import * as pure from "pureimage";
-
-import { BaseballStandingsData, Conferences, Divisions, TeamData } from "./BaseballStandingData";
-import { Logger } from "./Logger";
-import { Cache } from "./Cache";
+import { LoggerInterface } from "./Logger";
+import { KacheInterface } from "./Kache";
+import { BaseballStandingsData, Conferences, Divisions, TeamData } from "./BaseballStandingsData";
 
 export interface ImageResult {
     expires: string;
@@ -16,18 +14,16 @@ export interface ImageResult {
 
 export class BaseballStandingsImage {
     private standingsData: BaseballStandingsData;
-    private cache: Cache;
-    private logger: Logger;
-    private dirname: string;
+    private cache: KacheInterface;
+    private logger: LoggerInterface;
 
-    constructor(logger: Logger, dirname: string, cache: Cache) {
+    constructor(logger: LoggerInterface, cache: KacheInterface) {
         this.logger = logger;
-        this.dirname = dirname;
         this.cache = cache;
         this.standingsData = new BaseballStandingsData(this.logger, this.cache);
     }
 
-    public async getImageStream(conf: keyof Conferences, div: keyof Divisions): Promise<ImageResult> {
+    public async getImage(conf: keyof Conferences, div: keyof Divisions): Promise<ImageResult> {
         let title: string;
         if      (div === "E") { title = `${conf} EAST`;}
         else if (div === "C") { title = `${conf} CENTRAL`;}
@@ -56,9 +52,10 @@ export class BaseballStandingsImage {
         const mediumFont = "100px 'OpenSans-Bold'";   // Other text
         const smallFont  = "24px 'OpenSans-Bold'";   
 
-        const fntBold     = pure.registerFont(path.join(this.dirname, "..", "fonts", "OpenSans-Bold.ttf"),"OpenSans-Bold");
-        const fntRegular  = pure.registerFont(path.join(this.dirname, "..", "fonts", "OpenSans-Regular.ttf"),"OpenSans-Regular");
-        const fntRegular2 = pure.registerFont(path.join(this.dirname, "..", "fonts", "alata-regular.ttf"),"alata-regular");
+        // When used as an npm package, fonts need to be installed in the top level of the main project
+        const fntBold     = pure.registerFont(path.join(".", "fonts", "OpenSans-Bold.ttf"),"OpenSans-Bold");
+        const fntRegular  = pure.registerFont(path.join(".", "fonts", "OpenSans-Regular.ttf"),"OpenSans-Regular");
+        const fntRegular2 = pure.registerFont(path.join(".", "fonts", "alata-regular.ttf"),"alata-regular");
         
         fntBold.loadSync();
         fntRegular.loadSync();

@@ -1,26 +1,31 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import fs = require("fs");
 import path from "path";
-import { Logger } from "./Logger";
+import { LoggerInterface } from "./Logger";
 
-interface CacheItem {
+interface KacheItem {
     expiration: number;
     comment: string;
     item: unknown;
 }
 
-export interface CacheStorage {
-    [key: string]: CacheItem;
+export interface KacheStorage {
+    [key: string]: KacheItem;
 }
 
-export class Cache {
-    private cacheStorage: CacheStorage; 
+export interface KacheInterface {
+    get(key: string): unknown;
+    set(key: string, newItem: unknown, expirationTime: number): void;
+}
+
+export class Kache implements KacheInterface {
+    private cacheStorage: KacheStorage; 
     private cacheName: string;
     private cachePath: string;
 
-    private logger: Logger;
+    private logger: LoggerInterface;
 
-    constructor(logger: Logger, cacheName: string) {
+    constructor(logger: LoggerInterface, cacheName: string) {
         this.logger = logger;
         this.cacheName = cacheName;
         this.cachePath = path.resolve(__dirname, "..", this.cacheName);
@@ -29,29 +34,31 @@ export class Cache {
         try {
             const cacheData: Buffer | null | undefined = fs.readFileSync(this.cachePath);
             if (cacheData !== undefined && cacheData !== null) {
+                this.logger.verbose(`Cache: Using: ${this.cacheName}`); // ${JSON.stringify(this.cacheStorage, null, 4)}`);
+  
                 this.cacheStorage = JSON.parse(cacheData.toString());
 
                 for (const [key, value] of Object.entries(this.cacheStorage)) {
                     const cacheItem = this.cacheStorage[key];
         
                     if (cacheItem.expiration < new Date().getTime()) {
-                        this.logger.info(`Cache: ${cacheName} load: ${key} has expired, deleting`);
+                        this.logger.info(`Cache load: '${key}' has expired, deleting`);
                         delete this.cacheStorage[key];
                     } else {
-                        this.logger.verbose(`Cache: ${cacheName} load: ${key} still good.`);
+                        this.logger.verbose(`Cache load: '${key}' still good.`);
                     }
                 }
             } else {
-                this.logger.verbose(`Cache: no previous cache, creating new: ${this.cacheName}`);
+                this.logger.verbose(`Cache: Creating: ${this.cacheName}`);
             }
         } catch (e) {
-            this.logger.verbose(`Cache: no previous cache, creating new: ${this.cacheName}`);
+            this.logger.verbose(`Cache: Creating: ${this.cacheName}`);
         }
     }
 
     public get(key: string): unknown {
         if (this.cacheStorage[key] !== undefined) {
-            const cacheItem: CacheItem = this.cacheStorage[key as keyof CacheStorage];
+            const cacheItem: KacheItem = this.cacheStorage[key as keyof CacheStorage];
 
             const expiration: number = cacheItem.expiration;
             const item: unknown    = cacheItem.item;
@@ -59,14 +66,14 @@ export class Cache {
             const now = new Date();
             if (expiration > now.getTime()) {
                 // object is current
-                this.logger.verbose("Cache: Key: " + key + " - cache hit");
+                this.logger.verbose(`Cache: Key: '${key}' - cache hit`);
                 return item;
             } else {
                 // object expired
-                this.logger.verbose("Cache: Key: " + key + " - cache expired");
+                this.logger.verbose(`Cache: Key: '${key}' - cache expired`);
             }
         } else {
-            this.logger.verbose("Cache: Key: " + key + " - cache miss");
+            this.logger.verbose(`Cache: Key: '${key}' - cache miss`);
         }
 
         return null;
