@@ -3,6 +3,7 @@
   "version": "0.0.3",
   "description": "Create jpegs with baseball standings",
   "main": "index.js",
+  "types": "index.d.ts",
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "shx rm -rf build/*",
@@ -43,6 +44,8 @@
   "homepage": "https://github.com/kfaubel/baseball-standings-builder#readme",
   "files": [
     "build/**/*",
-    "fonts/**/*"
+    "fonts/**/*",
+    "index.js",
+    "index.d.ts"
   ]
 }
