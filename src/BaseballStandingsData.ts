@@ -3,7 +3,7 @@ import { LoggerInterface } from "./Logger";
 import { KacheInterface } from "./Kache";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const testJSONData = require(__dirname + "/../sample-standings.json");
+// const testJSONData = require("../sample-standings.json");
 
 // returned JSON
 // {
@@ -86,7 +86,7 @@ export class BaseballStandingsData {
 
         if (test) {
             this.logger.log("BaseballStandingsData: Using test data");  
-            rawJson = testJSONData;
+            rawJson = require("../sample-standings.json");
         } else {
             try {
                 const response = await axios.get(url, {headers: {"Content-Encoding": "gzip"}});

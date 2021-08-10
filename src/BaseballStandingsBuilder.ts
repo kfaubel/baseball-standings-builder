@@ -24,12 +24,12 @@ export class BaseballStandingsBuilder {
             const result: ImageResult = await baseballStandingsImage.getImage(conf as keyof Conferences, div as keyof Divisions);            
 
             if (result !== null && result.imageData !== null ) {
-                const fileName: string = `standings-${conf}-${div}.jpg`;
+                const fileName = `standings-${conf}-${div}.jpg`;
                 this.logger.info(`BaseballStandingsBuilder: Writing: ${fileName}`);
                 this.writer.saveFile(fileName, result.imageData.data);
                 return true;
             } else {
-               this. logger.error(`BaseballStandingsBuilder: no image ${conf}-${div}`);
+                this. logger.error(`BaseballStandingsBuilder: no image ${conf}-${div}`);
                 return false;
             }
         } catch (e) {

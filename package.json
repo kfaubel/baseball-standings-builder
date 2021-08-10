@@ -45,6 +45,7 @@
   "files": [
     "build/**/*",
     "fonts/**/*",
+    "sample-standing.json",
     "index.js",
     "index.d.ts"
   ]
