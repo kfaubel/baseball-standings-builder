@@ -23,6 +23,35 @@ export class BaseballStandingsImage {
         this.standingsData = new BaseballStandingsData(this.logger, this.cache);
     }
 
+    // This optimized fillRect was derived from the pureimage source code: https://github.com/joshmarinacci/node-pureimage/tree/master/src
+    // To fill a 1920x1080 image on a core i5, this saves about 1.5 seconds
+    // img        - image - it has 3 properties height, width and data
+    // x, y       - position of the rect
+    // w, h       - size of the rect
+    // rgb        - must be a string in this form "#112233"
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private myFillRect(img: any, x: number, y: number, w: number, h: number, rgb: string) {
+        const colorValue = parseInt(rgb.substring(1), 16);
+
+        // the shift operator forces js to perform the internal ToUint32 (see ecmascript spec 9.6)
+        //colorValue = colorValue >>> 0;
+        const r = (colorValue >>> 16) & 0xFF;
+        const g = (colorValue >>> 8)  & 0xFF;  
+        const b = (colorValue)        & 0xFF;
+        const a = 0xFF;
+
+        for(let i = y; i < y + h; i++) {                
+            for(let j = x; j < x + w; j++) {   
+                const index = (i * img.width + j) * 4;   
+                
+                img.data[index + 0] = r;
+                img.data[index + 1] = g;     
+                img.data[index + 2] = b;     
+                img.data[index + 3] = a; 
+            }
+        }
+    }
+
     public async getImage(conf: keyof Conferences, div: keyof Divisions): Promise<ImageResult> {
         let title: string;
         if      (div === "E") { title = `${conf} EAST`;}
@@ -43,7 +72,7 @@ export class BaseballStandingsImage {
         const imageHeight = 1080; 
         const imageWidth  = 1920; 
 
-        const backgroundColor     = "rgb(105, 135,  135)";  // Fenway Green
+        const backgroundColor     = "#698785";              // Fenway Green
         const boxBackgroundColor  = "rgb(95,  121,  120)";  // Fenway Green - Dark p.setColor(Color.rgb(0x5F, 0x79, 0x78));
         const titleColor          = "rgb(255, 255,  255)"; 
         const borderColor         = "rgb(255, 255,  255)";
@@ -97,6 +126,7 @@ export class BaseballStandingsImage {
         // Fill the bitmap
         ctx.fillStyle = backgroundColor;
         ctx.fillRect(0, 0, imageWidth, imageHeight);
+        this.myFillRect(img, 0, 0, imageWidth, imageHeight, backgroundColor);
 
         // Draw the title
         ctx.fillStyle = titleColor;
@@ -112,12 +142,19 @@ export class BaseballStandingsImage {
         
         // Some of this is a little finicky since little gaps appear with drawing individual lines
         ctx.beginPath();
-        ctx.moveTo(borderWidth-5,  borderWidth-5);
-        ctx.lineTo(borderWidth-5,  imageHeight);   // Down the left side
-        ctx.lineTo(imageWidth ,    imageHeight);   // Across the bottom
-        ctx.lineTo(imageWidth ,    borderWidth);   // Up to the top right
-        ctx.lineTo(0,              0);             // Back across the top to the left
+        ctx.moveTo(0, 0);
+        ctx.lineTo(imageWidth, 0);
+        ctx.lineTo(imageWidth, imageHeight);
+        ctx.lineTo(0, imageHeight);
+        ctx.lineTo(0, heavyStroke/2); 
         ctx.stroke();
+        // ctx.beginPath();
+        // ctx.moveTo(borderWidth-5,  borderWidth-5);
+        // ctx.lineTo(borderWidth-5,  imageHeight);   // Down the left side
+        // ctx.lineTo(imageWidth ,    imageHeight);   // Across the bottom
+        // ctx.lineTo(imageWidth ,    borderWidth);   // Up to the top right
+        // ctx.lineTo(0,              0);             // Back across the top to the left
+        // ctx.stroke();
         
         // Draw the column labels - gamesBack and gamesHalf are drawn to look like a single box with one label
         ctx.font = mediumFont;
