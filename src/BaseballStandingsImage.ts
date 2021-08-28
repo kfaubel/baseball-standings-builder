@@ -7,20 +7,19 @@ import { KacheInterface } from "./Kache";
 import { BaseballStandingsData, Conferences, Divisions, TeamData } from "./BaseballStandingsData";
 
 export interface ImageResult {
-    expires: string;
     imageType: string;
     imageData: jpeg.BufferRet | null;
 }
 
 export class BaseballStandingsImage {
-    private standingsData: BaseballStandingsData;
+    //private standingsData: BaseballStandingsData;
     private cache: KacheInterface;
     private logger: LoggerInterface;
 
     constructor(logger: LoggerInterface, cache: KacheInterface) {
         this.logger = logger;
         this.cache = cache;
-        this.standingsData = new BaseballStandingsData(this.logger, this.cache);
+        //this.standingsData = new BaseballStandingsData(this.logger, this.cache);
     }
 
     // This optimized fillRect was derived from the pureimage source code: https://github.com/joshmarinacci/node-pureimage/tree/master/src
@@ -52,21 +51,21 @@ export class BaseballStandingsImage {
         }
     }
 
-    public async getImage(conf: keyof Conferences, div: keyof Divisions): Promise<ImageResult> {
+    public async getImage(standingsArray: Conferences, conf: keyof Conferences, div: keyof Divisions): Promise<ImageResult> {
         let title: string;
         if      (div === "E") { title = `${conf} EAST`;}
         else if (div === "C") { title = `${conf} CENTRAL`;}
         else if (div === "W") { title = `${conf} WEST`;}
         else {
             this.logger.error(`BaseballStandingsImage: bad division: ${div}`); 
-            return {expires: "", imageType: "", imageData: null};
+            return {imageType: "", imageData: null};
         }
 
-        const standingsArray: Conferences | null = await this.standingsData.getStandingsData();
+        //const standingsArray: Conferences | null = await this.standingsData.getStandingsData();
 
         if (standingsArray === null) {
             this.logger.warn("BaseballStandingsImage: Failed to get data, no image available.\n");
-            return {expires: "", imageType: "", imageData: null};
+            return {imageType: "", imageData: null};
         }
 
         const imageHeight = 1080; 
@@ -205,15 +204,11 @@ export class BaseballStandingsImage {
             ctx.fillText(lastTen,   lastTenX,    rowY);
         }
 
-        const expires = new Date();
-        expires.setHours(expires.getHours() + 12);
-
         const jpegImg = jpeg.encode(img, 50);
         
         return {
             imageData: jpegImg,
-            imageType: "jpg",
-            expires: expires.toUTCString()
+            imageType: "jpg"
         };
     }
 }

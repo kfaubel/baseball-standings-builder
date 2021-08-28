@@ -10,15 +10,7 @@ async function run() {
     const simpleImageWriter: SimpleImageWriter = new SimpleImageWriter(logger, "images");
     const baseballStandingsBuilder: BaseballStandingsBuilder = new BaseballStandingsBuilder(logger, cache, simpleImageWriter);
 
-    let results = true; // Any false returned will set result to false
-    results = results && await baseballStandingsBuilder.CreateImages("AL", "E");
-    results = results && await baseballStandingsBuilder.CreateImages("AL", "C");
-    results = results && await baseballStandingsBuilder.CreateImages("AL", "W");
-    results = results && await baseballStandingsBuilder.CreateImages("NL", "E");
-    results = results && await baseballStandingsBuilder.CreateImages("NL", "C");
-    results = results && await baseballStandingsBuilder.CreateImages("NL", "W");
-
-    return results ? 0 : 1;
+    return await baseballStandingsBuilder.CreateImages();
 }
 
 run();
