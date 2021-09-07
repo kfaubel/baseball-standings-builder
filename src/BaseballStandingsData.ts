@@ -81,6 +81,12 @@ export class BaseballStandingsData {
         const test = false; // Don't hit real server while developing
 
         const url = "https://erikberg.com/mlb/standings.json";
+
+        let USER_AGENT: string | undefined = process.env.USER_AGENT;
+        if (USER_AGENT === undefined) {
+            this.logger.warn("BaseballStandingsData: USER_AGENT missing, using \"BaseballStandingsBuilder\".  May get 403");
+            USER_AGENT = "BaseballStandingsBuilder";
+        }
         
         let rawJson: RawJson = {standing: []};
 
@@ -89,7 +95,7 @@ export class BaseballStandingsData {
             rawJson = require("../sample-standings.json");
         } else {
             try {
-                const response = await axios.get(url, {headers: {"Content-Encoding": "gzip"}});
+                const response = await axios.get(url, {headers: {"User-Agent": USER_AGENT, "Content-Encoding": "gzip"}});
                 rawJson = response.data;
             } catch (e) {
                 this.logger.error(`BaseballStandingsData: Error getting data: ${e}`);
