@@ -1,16 +1,5 @@
 declare module "baseball-standings-builder";
 
-export interface Conferences {
-    "AL": Divisions;
-    "NL": Divisions;
-}
-
-export interface Divisions {
-    "E": Array<TeamData>;
-    "C": Array<TeamData>;
-    "W": Array<TeamData>;
-}
-
 export interface LoggerInterface {
     error(text: string): void;
     warn(text: string): void;
@@ -30,6 +19,6 @@ export interface ImageWriterInterface {
 }
 
 export declare class BaseballStandingsBuilder {
-    constructor(logger: LoggerInterface, cache: KacheInterface, writer: ImageWriterInterface): void;
-    CreateImages(conf: string, div: string): Promise<boolean>
+    constructor(logger: LoggerInterface, cache: KacheInterface, writer: ImageWriterInterface);
+    CreateImages(): Promise<boolean>
 }
