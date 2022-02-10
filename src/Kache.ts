@@ -24,6 +24,7 @@ export class Kache implements KacheInterface {
     private cachePath: string;
 
     private logger: LoggerInterface;
+    traceLogging: boolean;
 
     constructor(logger: LoggerInterface, cacheName: string) {
         this.logger = logger;
@@ -31,10 +32,12 @@ export class Kache implements KacheInterface {
         this.cachePath = path.resolve(__dirname, "..", this.cacheName);
         this.cacheStorage = {};
 
+        this.traceLogging = (typeof process.env.VERBOSE_CACHE !== "undefined" );
+
         try {
             const cacheData: Buffer | null | undefined = fs.readFileSync(this.cachePath);
             if (cacheData !== undefined && cacheData !== null) {
-                this.logger.verbose(`Cache: Using: ${this.cacheName}`); // ${JSON.stringify(this.cacheStorage, null, 4)}`);
+                this.verboseLog("Initiallizing with stored data"); // ${JSON.stringify(this.cacheStorage, null, 4)}`);
   
                 this.cacheStorage = JSON.parse(cacheData.toString());
 
@@ -42,17 +45,23 @@ export class Kache implements KacheInterface {
                     const cacheItem = this.cacheStorage[key];
         
                     if (cacheItem.expiration < new Date().getTime()) {
-                        this.logger.info(`Cache load: '${key}' has expired, deleting`);
+                        this.verboseLog(`Load: '${key}' has expired, deleting`);
                         delete this.cacheStorage[key];
                     } else {
-                        this.logger.verbose(`Cache load: '${key}' still good.`);
+                        this.verboseLog(`Load: '${key}' still good.`);
                     }
                 }
             } else {
-                this.logger.verbose(`Cache: Creating: ${this.cacheName}`);
+                this.verboseLog("Initializing new cache");
             }
         } catch (e) {
-            this.logger.verbose(`Cache: Creating: ${this.cacheName}`);
+            this.verboseLog("Error with previous stored data, initializing new cache");
+        }
+    }
+
+    private verboseLog(msg: string) {
+        if (this.traceLogging) {
+            this.logger.verbose(`Cache[${this.cacheName}] ${msg}`);
         }
     }
 
@@ -66,14 +75,14 @@ export class Kache implements KacheInterface {
             const now = new Date();
             if (expiration > now.getTime()) {
                 // object is current
-                this.logger.verbose(`Cache: Key: '${key}' - cache hit`);
+                this.verboseLog(`Get: Key: '${key}' - cache hit`);
                 return item;
             } else {
                 // object expired
-                this.logger.verbose(`Cache: Key: '${key}' - cache expired`);
+                this.verboseLog(`Get: Key: '${key}' - cache expired`);
             }
         } else {
-            this.logger.verbose(`Cache: Key: '${key}' - cache miss`);
+            this.verboseLog(`Get: Key: '${key}' - cache miss`);
         }
 
         return null;
@@ -81,7 +90,7 @@ export class Kache implements KacheInterface {
 
     public set(key: string, newItem: unknown, expirationTime: number): void {
         const comment: string = new Date(expirationTime).toString();
-        this.logger.verbose(`Cache set: Key: ${key}, exp: ${comment}`);
+        this.verboseLog(`Set: Key: ${key}, exp: ${comment}`);
 
         const cacheItem = {expiration: expirationTime, comment: comment, item: newItem};
         this.cacheStorage[key as keyof CacheStorage] =  cacheItem;

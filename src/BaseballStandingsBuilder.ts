@@ -11,18 +11,20 @@ export class BaseballStandingsBuilder {
     private cache: KacheInterface;
     private writer: ImageWriterInterface;
     private standingsData: BaseballStandingsData;
+    private userAgent: string;
 
-    constructor(logger: LoggerInterface, cache: KacheInterface, writer: ImageWriterInterface) {
+    constructor(logger: LoggerInterface, cache: KacheInterface, writer: ImageWriterInterface, userAgent: string) {
         this.logger = logger;
         this.cache = cache; 
         this.writer = writer;
         this.standingsData = new BaseballStandingsData(this.logger, this.cache);
+        this.userAgent = userAgent;
     }
     
     public async CreateImages(): Promise<boolean>{
         try {
             // We try this once.
-            const standingsArray: Conferences | null = await this.standingsData.getStandingsData();
+            const standingsArray: Conferences | null = await this.standingsData.getStandingsData(this.userAgent);
             if (standingsArray === null) {
                 this. logger.error("BaseballStandingsBuilder: no data.");
                 return false;

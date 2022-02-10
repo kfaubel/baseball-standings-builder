@@ -22,18 +22,21 @@ export class BaseballStandingsImage {
         //this.standingsData = new BaseballStandingsData(this.logger, this.cache);
     }
 
-    // This optimized fillRect was derived from the pureimage source code: https://github.com/joshmarinacci/node-pureimage/tree/master/src
-    // To fill a 1920x1080 image on a core i5, this saves about 1.5 seconds
-    // img        - image - it has 3 properties height, width and data
-    // x, y       - position of the rect
-    // w, h       - size of the rect
-    // rgb        - must be a string in this form "#112233"
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    /**
+     * Optimized fill routine for pureimage
+     * - See https://github.com/joshmarinacci/node-pureimage/tree/master/src
+     * - To fill a 1920x1080 image on a core i5, this saves about 1.5 seconds
+     * @param img it has 3 properties height, width and data
+     * @param x X position of the rect
+     * @param y Y position of the rect
+     * @param w Width of rect
+     * @param h Height of rect
+     * @param rgb Fill color in "#112233" format
+     */
     private myFillRect(img: any, x: number, y: number, w: number, h: number, rgb: string) {
         const colorValue = parseInt(rgb.substring(1), 16);
 
-        // the shift operator forces js to perform the internal ToUint32 (see ecmascript spec 9.6)
-        //colorValue = colorValue >>> 0;
+        // The shift operator forces js to perform the internal ToUint32 (see ecmascript spec 9.6)
         const r = (colorValue >>> 16) & 0xFF;
         const g = (colorValue >>> 8)  & 0xFF;  
         const b = (colorValue)        & 0xFF;
@@ -123,8 +126,6 @@ export class BaseballStandingsImage {
         const ctx = img.getContext("2d");
 
         // Fill the bitmap
-        ctx.fillStyle = backgroundColor;
-        ctx.fillRect(0, 0, imageWidth, imageHeight);
         this.myFillRect(img, 0, 0, imageWidth, imageHeight, backgroundColor);
 
         // Draw the title
