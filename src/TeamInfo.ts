@@ -1,0 +1,547 @@
+export interface Team {
+    id: string;
+    name: string;
+    location: string;                  // "Boston", "Arizona", ...
+    abbreviation: string;
+    conferenceAbbreviation: string;
+    divisionAbbreviation: string;
+    backgroundColor: string;
+    accentColor: string;
+    textColor: string;
+    redirect?: string;
+    timeZone: string;
+}
+
+type Teams = Team[];
+
+export interface Division {
+    name: string;
+    abbreviation: string;
+    id: string;
+    conferenceAbbreviation: string;
+    teams: Array<string>;
+}
+
+type Divisions = Division[];
+
+export interface Conference {
+    name: string;
+    abbreviation: string;
+    id: string;
+    divisions: Array<string>;
+}
+
+type Conferences = Conference[];
+
+export interface Division {
+    name: string;
+    abbreviation: string;
+    id: string; 
+    conferenceAbbreviation: string;
+    teams: Array<string>; 
+}
+
+export class TeamInfo {
+    /**
+     * Lookup a Team by its abbreviation
+     * @param teamAbbreviation Like "BOS", "LAD", "KC", ...
+     * @returns Team element with name, colors, timezone, ...
+     */
+    public lookupTeamByAbbreviation(teamAbbreviation: string): Team | undefined {
+        return teamsTable.find((team: Team) => {return team.abbreviation === teamAbbreviation;});
+    }
+
+    /**
+     * Lookup a Team by its statsapi id
+     * @param teamAId Like "111" is BOS, "119" is LAD, ...
+     * @returns Team element with name, colors, timezone, ...
+     */
+    public lookupTeamById(teamId: string | number): Team | undefined {
+        return teamsTable.find((team: Team) => {return team.id === teamId + "";});
+    }
+
+    /**
+     * Lookup a Conference by its abbreviation
+     * @param conferenceAbbreviation Like "AL" or "NL"
+     * @returns Conference element with name, divisions, ...
+     */
+    public lookupConferenceByAbbreviation(conferenceAbbreviation: string): Conference | undefined {
+        return conferenceIdTable.find((conference: Conference) => {return conference.abbreviation === conferenceAbbreviation;});
+    }
+
+    /**
+     * Lookup a Conference by its statsapi id
+     * @param conferenceId Like "103" is AL, "104" is NL
+     * @returns Conference element with name, divisions, ...
+     */
+    public lookupConferenceById(conferenceId: string | number): Conference | undefined {
+        return conferenceIdTable.find((conference: Conference) => {return conference.id === conferenceId + "";});
+    }
+
+    /**
+     * Lookup a Division by its statsapi id
+     * @param divisionId Like "201" is AL East, "206" is "NL West", ...
+     * @returns Division element with name, conference, teams, ...
+     */
+    public lookupDivisionByAbbreviation(divisionAbbreviation: string): Division | undefined {
+        return divisionIdTable.find((division: Division) => {return division.abbreviation === divisionAbbreviation;});
+    }
+
+    /**
+     * Lookup a Division by its statsapi id
+     * @param divisionId Like "201" is AL East, "206" is "NL West", ...
+     * @returns Division element with name, conference, teams, ...
+     */
+    public lookupDivisionById(divisionId: string | number): Division | undefined {
+        console.log(`lookupDivisionById: ${divisionId}`);
+        return divisionIdTable.find((division: Division) => {return division.id === divisionId + "";});
+    }
+}
+
+const conferenceIdTable: Conferences = [
+    {
+        name: "American League",
+        abbreviation: "AL",
+        id: "103",
+        divisions: ["E", "C", "W"]
+    },
+    {
+        name: "National League",
+        abbreviation: "NL",
+        id: "104",
+        divisions: ["E", "C", "W"]
+    }
+];
+
+const divisionIdTable: Divisions = [
+    {
+        name: "AL East",
+        abbreviation: "E",
+        id: "201",
+        conferenceAbbreviation: "AL",
+        teams: ["BOS", "BAL", "NYY", "TOR", "TB"]
+    },
+    {
+        name: "AL Central",
+        abbreviation: "C",
+        id: "202",
+        conferenceAbbreviation: "AL",
+        teams: ["CLE", "CWS", "MIN", "KC", "DET"]
+    },
+    {
+        name: "AL West",
+        abbreviation: "W",
+        id: "200",
+        conferenceAbbreviation: "AL",
+        teams: ["LAA", "SEA", "OAK", "HOU", "TEX"]
+    },
+    {
+        name: "NL East",
+        abbreviation: "E",
+        id: "204",
+        conferenceAbbreviation: "NL",
+        teams: ["NYM", "PHI", "ATL", "MIA", "PIT"]
+    },
+    {
+        name: "NL Central",
+        abbreviation: "C",
+        id: "205",
+        conferenceAbbreviation: "NL",
+        teams: ["CHC", "MIL", "CIN", "STL", "KC"]
+    },
+    {
+        name: "NL West",
+        abbreviation: "W",
+        id: "203",
+        conferenceAbbreviation: "NL",
+        teams: ["LAD", "SF", "SD", "COL", "ARI"]
+    }
+];
+
+const teamsTable: Teams = [
+    {
+        name: "NULL",
+        id: "000",
+        abbreviation: "NUL",
+        location: "Null",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "E",
+        backgroundColor: "000000",
+        accentColor: "#808080",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "109",
+        name: "Arizona Diamondbacks",
+        location: "Arizona",
+        abbreviation: "ARI",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "W",
+        backgroundColor: "#A71930",
+        accentColor: "#E3D4AD",
+        textColor: "#FFFFFF",
+        timeZone: "America/Los_Angeles"
+    },
+    {
+        id: "144",
+        name: "Atlanta Braves",
+        abbreviation: "ATL",
+        location: "Atlanta",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "E",
+        backgroundColor: "#13274F",
+        accentColor: "#CE1141",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "110",
+        name: "Baltimore Orioles",
+        abbreviation: "BAL",
+        location: "Balimore",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "E",
+        backgroundColor: "#DF4601",
+        accentColor: "#000000",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "111",
+        name: "Boston Red Sox",
+        abbreviation: "BOS",
+        location: "Boston",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "E",
+        backgroundColor: "#BD3039",
+        accentColor: "#0C2340",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "112",
+        name: "Chicago Cubs",
+        abbreviation: "CHC",
+        location: "Chicago",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "C",
+        backgroundColor: "#0E3386",
+        accentColor: "#CC3433",
+        textColor: "#FFFFFF",
+        timeZone: "America/Chicago"
+    },
+    {
+        id: "145",
+        name: "Chicago White Sox",
+        abbreviation: "CWS",
+        location: "Chicago",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "C",
+        backgroundColor: "#27251F",
+        accentColor: "#C4CED4",
+        textColor: "#FFFFFF",
+        timeZone: "America/Chicago"
+    },
+    {
+        id: "113",
+        name: "Cincinnati Reds",
+        abbreviation: "CIN",
+        location: "Cincinnati",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "C",
+        backgroundColor: "#C6011F",
+        accentColor: "#000000",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "115",
+        name: "Colorado Rockies",
+        abbreviation: "COL",
+        location: "Colorado",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "W",
+        backgroundColor: "#33006F",
+        accentColor: "#C4CED4",
+        textColor: "#C4CED4",
+        timeZone: "America/Denver"
+    },
+    {
+        id: "114",
+        name: "Cleveland Indians",
+        abbreviation: "CLE",
+        location: "Cleveland",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "C",
+        backgroundColor: "#0C2340",
+        accentColor: "#E31937",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "116",
+        name: "Detroit Tigers",
+        abbreviation: "DET",
+        location: "Detroit",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "C",
+        backgroundColor: "#0C2340",
+        accentColor: "#FA4616",
+        textColor: "#FFFFFF",
+        timeZone: "America/Chicago"
+    },
+    {
+        id: "117",
+        name: "Houston Astros",
+        abbreviation: "HOU",
+        location: "Houston",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "W",
+        backgroundColor: "#002D62",
+        accentColor: "#EB6E1F",
+        textColor: "#FFFFFF",
+        timeZone: "America/Chicago"
+    },
+    {
+        id: "118",
+        name: "Kansas City Royals",
+        abbreviation: "KC",
+        location: "Kansas City",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "C",
+        backgroundColor: "#004687",
+        accentColor: "#BD9B60",
+        textColor: "#FFFFFF",
+        timeZone: "America/Chicago"
+    },
+    {
+        id: "108",
+        name: "Los Angeles Angels of Anaheim",
+        abbreviation: "LAA",
+        location: "Anaheim",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "W",
+        backgroundColor: "#BA0021",
+        accentColor: "#003263",
+        textColor: "#C4CED4",
+        timeZone: "America/Los_Angeles"
+    },
+    {
+        id: "119",
+        name: "Los Angeles Dodgers",
+        abbreviation: "LAD",
+        location: "Los Angeles",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "W",
+        backgroundColor: "#005A9C",
+        accentColor: "#EF3E42",
+        textColor: "#FFFFFF",
+        timeZone: "America/Los_Angeles"
+    },
+    {
+        id: "146",
+        name: "Miami Marlins",
+        abbreviation: "MIA",
+        location: "Miami",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "E",
+        backgroundColor: "#000000",
+        accentColor: "#00A3E0",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "158",
+        name: "Milwaukee Brewers",
+        abbreviation: "MIL",
+        location: "Milwaukee",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "C",
+        backgroundColor: "#12284B",
+        accentColor: "#FFC52F",
+        textColor: "#FFFFFF",
+        timeZone: "America/Chicago"
+    },
+    {
+        id: "142",
+        name: "Minnesota Twins",
+        abbreviation: "MIN",
+        location: "Minnesota",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "C",
+        backgroundColor: "#002B5C",
+        accentColor: "#D31145",
+        textColor: "#FFFFFF",
+        timeZone: "America/Chicago"
+    },
+    {
+        id: "121",
+        name: "New York Mets",
+        abbreviation: "NYM",
+        location: "New York",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "E",
+        backgroundColor: "#002D72",
+        accentColor: "#FF5910",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "147",
+        name: "New York Yankees",
+        abbreviation: "NYY",
+        location: "New York",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "E",
+        backgroundColor: "#003087",
+        accentColor: "#E4002C",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "133",
+        name: "Oakland Athletics",
+        abbreviation: "OAK",
+        location: "Oakland",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "W",
+        backgroundColor: "#003831",
+        accentColor: "#EFB21E",
+        textColor: "#FFFFFF",
+        timeZone: "America/Los_Angeles"
+    },
+    {
+        id: "143",
+        name: "Philadelphia Phillies",
+        abbreviation: "PHI",
+        location: "Philadelphia",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "E",
+        backgroundColor: "#E81828",
+        accentColor: "#002D72",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "134",
+        name: "Pittsburgh Pirates",
+        abbreviation: "PIT",
+        location: "Pittsburgh",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "E",
+        backgroundColor: "#27251F",
+        accentColor: "#FDB827",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "135",
+        name: "San Diego Padres",
+        abbreviation: "SD",
+        location: "San Diego",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "W",
+        backgroundColor: "#2F241D",
+        accentColor: "#FFC425",
+        textColor: "#FFFFFF",
+        timeZone: "America/Los_Angeles"
+    },
+    {
+        id: "137",
+        name: "San Francisco Giants",
+        abbreviation: "SF",
+        location: "San Francisco",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "W",
+        backgroundColor: "#FD5A1E",
+        accentColor: "#27251F",
+        textColor: "#FFFFFF",
+        timeZone: "America/Los_Angeles"
+    },
+    {
+        id: "136",
+        name: "Seattle Mariners",
+        abbreviation: "SEA",
+        location: "Seattle",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "W",
+        backgroundColor: "#0C2C56",
+        accentColor: "#005C5C",
+        textColor: "#C4CED4",
+        timeZone: "America/Los_Angeles"
+    },
+    {
+        id: "138",
+        name: "St Louis Cardinals",
+        abbreviation: "STL",
+        location: "St Louis",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "C",
+        backgroundColor: "#C41E3A",
+        accentColor: "#FEDB00",
+        textColor: "#FFFFFF",
+        timeZone: "America/Chicago"
+    },
+    {
+        id: "139",
+        name: "Tampa Bay Rays",
+        abbreviation: "TB",
+        location: "Tampa Bay",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "E",
+        backgroundColor: "#092C5C",
+        accentColor: "#8FBCE6",
+        textColor: "#F5D130",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "140",
+        name: "Texas Rangers",
+        abbreviation: "TEX",
+        location: "Texas",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "W",
+        backgroundColor: "#003278",
+        accentColor: "#C0111F",
+        textColor: "#FFFFFF",
+        timeZone: "America/Chicago"
+    },
+    {
+        id: "141",
+        name: "Toronto Blue Jays",
+        abbreviation: "TOR",
+        location: "Toronto",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "E",
+        backgroundColor: "#134A8E",
+        accentColor: "#E8291C",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },
+    {
+        id: "120",
+        name: "Washington Nationals",
+        abbreviation: "WSH",
+        location: "Washington",
+        conferenceAbbreviation: "NL",
+        divisionAbbreviation: "E",
+        backgroundColor: "#AB0003",
+        accentColor: "#14225A",
+        textColor: "#FFFFFF",
+        timeZone: "America/New_York"
+    },    
+    {
+        id: "111",
+        name: "Boston Red Sox",
+        abbreviation: "BOS",
+        location: "Boston",
+        conferenceAbbreviation: "AL",
+        divisionAbbreviation: "E",
+        redirect: "BOS",
+        backgroundColor: "#4f7359",
+        accentColor: "#E0E0E0",
+        textColor: "#E0E0E0",
+        timeZone: "America/New_York"
+    }
+];

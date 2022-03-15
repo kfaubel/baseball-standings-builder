@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { LoggerInterface } from "./Logger";
@@ -23,8 +24,8 @@ export class BaseballStandingsBuilder {
     
     public async CreateImages(): Promise<boolean>{
         try {
-            // We try this once.
-            const standingsArray: Conferences | null = await this.standingsData.getStandingsData(this.userAgent);
+            const now = new Date();
+            const standingsArray: Conferences | null = await this.standingsData.getStandingsData(now.getFullYear());
             if (standingsArray === null) {
                 this. logger.error("BaseballStandingsBuilder: no data.");
                 return false;
@@ -45,8 +46,9 @@ export class BaseballStandingsBuilder {
                     }
                 }
             }
-        } catch (e) {
+        } catch (e: any) {
             this.logger.error(`BaseballStandingsBuilder: exception: ${e}`);
+            this.logger.error(e.stack);
             return false;
         }
         return true;

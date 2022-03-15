@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import jpeg from "jpeg-js";
 import path from "path";
@@ -109,7 +110,7 @@ export class BaseballStandingsImage {
         const lostOffsetX       = 1160;
         const gamesBackOffsetX  = 1360;
         const gamesHalfOffsetX  = 1500; // This touches and extends the games back box
-        const lastTenOffsetX    = 1650;
+        const streakOffsetX    = 1650;
 
         const textOffsetInBoxY: number  = (boxHeight - 32); // text orgin is lower right and we want it up a bit more to center vertically in box
         
@@ -118,7 +119,7 @@ export class BaseballStandingsImage {
         const lostBoxWidth      = 170;
         const gamesBackBoxWidth = 140;  // if a team is 2.5 games back, gamesBack will be "2"
         const gamesHalfBoxWidth = 120;  //                              gamesHalf will be a '1/2' char
-        const lastTenBoxWidth   = 210;
+        const streakBoxWidth   = 210;
 
         const cityTextOffsetX   = 20;   // Set the left spacing to 20 pixels, other fields are centered.
 
@@ -161,7 +162,7 @@ export class BaseballStandingsImage {
         ctx.fillText("W",    wonOffsetX +       (wonBoxWidth                             - ctx.measureText("W").width)   / 2, labelOffsetTop);
         ctx.fillText("L",    lostOffsetX +      (lostBoxWidth                            - ctx.measureText("L").width)   / 2, labelOffsetTop);
         ctx.fillText("GB",   gamesBackOffsetX + ((gamesBackBoxWidth + gamesHalfBoxWidth) - ctx.measureText("GB").width)  / 2, labelOffsetTop);
-        ctx.fillText("L10",  lastTenOffsetX +   (lastTenBoxWidth                         - ctx.measureText("L10").width) / 2, labelOffsetTop);
+        ctx.fillText("L10",  streakOffsetX +   (streakBoxWidth                         - ctx.measureText("L10").width) / 2, labelOffsetTop);
 
         // Draw the boxes for the city, wins, losses and games back
         ctx.fillStyle = boxBackgroundColor;
@@ -171,22 +172,20 @@ export class BaseballStandingsImage {
             ctx.fillRect(lostOffsetX,      rowOffsetY + row * rowSpacing,  lostBoxWidth,      boxHeight);
             ctx.fillRect(gamesBackOffsetX, rowOffsetY + row * rowSpacing,  gamesBackBoxWidth, boxHeight);
             ctx.fillRect(gamesHalfOffsetX, rowOffsetY + row * rowSpacing,  gamesHalfBoxWidth, boxHeight);
-            ctx.fillRect(lastTenOffsetX,   rowOffsetY + row * rowSpacing,  lastTenBoxWidth,   boxHeight);
+            ctx.fillRect(streakOffsetX,   rowOffsetY + row * rowSpacing,  streakBoxWidth,   boxHeight);
         }
 
         // Now fill in the text in each row for the conf and div specified
         ctx.fillStyle = titleColor;
         ctx.font = mediumFont;
         for (let i = 0; i < 5; i++) {
-            const city      = `${standingsArray[conf][div][i].city}`;
-            const won       = `${standingsArray[conf][div][i].won}`;
-            const lost      = `${standingsArray[conf][div][i].lost}`;
-            let   gamesBack = `${standingsArray[conf][div][i].games_back}`;
-            let   gamesHalf = `${standingsArray[conf][div][i].games_half}`;
-            const lastTen   = `${standingsArray[conf][div][i].last_ten}`;
-
-            if (gamesBack === "0") gamesBack = "-";
-            gamesHalf =  (gamesHalf === "1") ? "\u00BD" : "";  // we will show a '1/2' char or nothing
+            const teamData = standingsArray[conf][div][i];
+            const city      = teamData.location;
+            const won       = teamData.wins + "";
+            const lost      = teamData.losses + "";
+            const streak    = teamData.streak; 
+            const gamesBack: string   = teamData.gamesBack === 0 ? "-" : Math.floor(teamData.gamesBack) + "";
+            const gamesHalf =  (Math.floor(teamData.gamesBack) === teamData.gamesBack) ? "" : "\u00BD";
 
             const rowY       = rowOffsetY + (i * rowSpacing) + textOffsetInBoxY;        
 
@@ -195,14 +194,14 @@ export class BaseballStandingsImage {
             const lostX      = lostOffsetX +      (lostBoxWidth -      ctx.measureText(lost).width) / 2;
             const gamesBackX = gamesBackOffsetX + (gamesBackBoxWidth - ctx.measureText(gamesBack).width) / 2;
             const gamesHalfX = gamesHalfOffsetX + (gamesHalfBoxWidth - ctx.measureText(gamesHalf).width) / 2;
-            const lastTenX   = lastTenOffsetX +   (lastTenBoxWidth -   ctx.measureText(lastTen).width) / 2;
+            const streakX    = streakOffsetX +    (streakBoxWidth -    ctx.measureText(streak).width) / 2;
             
             ctx.fillText(city,      cityX,       rowY);
             ctx.fillText(won,       wonX,        rowY);
             ctx.fillText(lost,      lostX,       rowY);
             ctx.fillText(gamesBack, gamesBackX,  rowY);
             ctx.fillText(gamesHalf, gamesHalfX,  rowY);
-            ctx.fillText(lastTen,   lastTenX,    rowY);
+            ctx.fillText(streak,    streakX,     rowY);
         }
 
         const jpegImg = jpeg.encode(img, 50);
