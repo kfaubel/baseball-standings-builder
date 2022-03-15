@@ -5,7 +5,7 @@ import { Kache } from "./Kache";
 import { SimpleImageWriter } from "./SimpleImageWriter";
 
 async function run() {
-    const logger: Logger = new Logger("standings-builder", "verbose"); 
+    const logger: Logger = new Logger("standings-builder", "info"); 
 
     dotenv.config();  // Load var from .env into the environment
     const USER_AGENT: string | undefined = process.env.USER_AGENT;

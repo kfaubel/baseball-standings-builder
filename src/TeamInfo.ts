@@ -79,12 +79,15 @@ export class TeamInfo {
     }
 
     /**
-     * Lookup a Division by its statsapi id
-     * @param divisionId Like "201" is AL East, "206" is "NL West", ...
+     * Lookup a Division by its abbreviation
+     * @param divisionAbbreviation Like "E", ...
+     * @param conferenceAbbreviation Like "AL" or "NL"
      * @returns Division element with name, conference, teams, ...
      */
-    public lookupDivisionByAbbreviation(divisionAbbreviation: string): Division | undefined {
-        return divisionIdTable.find((division: Division) => {return division.abbreviation === divisionAbbreviation;});
+    public lookupDivisionByAbbreviation(divisionAbbreviation: string, conferenceAbbreviation: string): Division | undefined {
+        return divisionIdTable.find((division: Division) => {
+            return division.abbreviation === divisionAbbreviation && division.conferenceAbbreviation === conferenceAbbreviation;
+        });
     }
 
     /**
@@ -93,7 +96,6 @@ export class TeamInfo {
      * @returns Division element with name, conference, teams, ...
      */
     public lookupDivisionById(divisionId: string | number): Division | undefined {
-        console.log(`lookupDivisionById: ${divisionId}`);
         return divisionIdTable.find((division: Division) => {return division.id === divisionId + "";});
     }
 }
