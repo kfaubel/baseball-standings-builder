@@ -35,48 +35,49 @@ import { TeamInfo } from "./TeamInfo";
 //     ]
 // }
 
-interface FeedTeam {
-    id: string;                        // 111
-    name: string;                      // Boston Red Sox
+type FeedRecords = {
+    league: {
+        id: number;                        // 103 - AL, 104 - NL
+        link: string;                      // "/api/v1/league/103"
+    };
+    division: {
+        id: number;                        // 201 - ALE
+        link: string;                      // "/api/v1/division/201"
+    };
+    teamRecords: {
+        team: {
+            id: string;                        // 111
+            name: string;                      // Boston Red Sox
+        };
+        streak: {
+            streakCode: string;
+        };
+        dividionRank: string;              // "1"
+        gamesBack: string;                 // '-', '1', 2.5', ...
+        clinchIndicator: string;           // z
+        clinched?: boolean;                // true
+        eliminationNumber: string;         // "-", "E"
+        wildCardEliminationNumber: string; // "-", "E"
+        magicNumber?: string;              // "-", 
+        wins: number;                      // 108
+        losses: number;                    // 54
+        records: {
+            splitRecords: {
+                wins: number;
+                losses: number;
+                type: string;              // "home", "away", left", "leftHome", "leftAway", ... "lastTen" , "extraInnings", "oneRun", ...
+                pct: string;               // ".600"
+            }[]
+        }
+    }[]
+}[];
+
+interface SplitRecord {
+    wins: number;
+    losses: number;
+    type: string;              // "home", "away", left", "leftHome", "leftAway", ... "lastTen" , "extraInnings", "oneRun", ...
+    pct: string;               // ".600"
 }
-
-interface FeedStreak {
-    streakCode: string;
-}
-
-interface FeedTeamRecord {
-    team: FeedTeam;
-    streak: FeedStreak;
-    dividionRank: string;              // "1"
-    gamesBack: string;                 // '-', '1', 2.5', ...
-    clinchIndicator: string;           // z
-    clinched?: boolean;                // true
-    eliminationNumber: string;         // "-", "E"
-    wildCardEliminationNumber: string; // "-", "E"
-    magicNumber?: string;              // "-", 
-    wins: number;                      // 108
-    losses: number;                    // 54
-}
-
-type FeedTeamRecords = FeedTeamRecord[];
-
-interface FeedLeague {
-    id: number;                        // 103 - AL, 104 - NL
-    link: string;                      // "/api/v1/league/103"
-}
-
-interface FeedDivision {
-    id: number;                        // 201 - ALE
-    link: string;                      // "/api/v1/division/201"
-}
-
-interface FeedRecord {
-    league: FeedLeague;
-    division: FeedDivision;
-    teamRecords: FeedTeamRecords;
-}
-
-type FeedRecords = FeedRecord[];
 
 export interface Conferences {
     "AL": Divisions;
@@ -90,16 +91,17 @@ export interface Divisions {
 }
 
 export interface TeamData {
-    location?: string;
-    wins?: number;
-    losses?: number;
+    location: string;
+    wins: number;
+    losses: number;
     gamesBack: number;
-    streak?: string;
+    streak: string;
+    lastTen: string;
     clinchIndicator: string;           // z
     clinched?: boolean;                // true
     eliminationNumber: string;         // "-", "E"
     wildCardEliminationNumber: string; // "-", "E"
-    magicNumber?: string;              // "-", 
+    magicNumber: string;                // "-", 
 }
 
 export class BaseballStandingsData {
@@ -176,11 +178,29 @@ export class BaseballStandingsData {
 
                     for (const teamRecord of feedRecord.teamRecords) {
                         this.logger.verbose(`BaseballStandingsData: adding team: ${teamRecord.team.id}`);
+                        
+                        const lastTenRecord: SplitRecord | undefined = teamRecord.records.splitRecords.find(
+                            (splitRecord: SplitRecord) => {
+                                splitRecord.type === "lastTen";
+                            }
+                        );
+
+                        const lastTen = lastTenRecord !== undefined ? `${lastTenRecord.wins}-${lastTenRecord.losses}` : "";
+
+                        // Pick out the values we need.  Some are just a copy, some are computed
                         const teamData: TeamData = {
-                            ...teamRecord, 
-                            location: teamInfo.lookupTeamById(teamRecord.team.id)?.location,
+                            wins:                      teamRecord.wins,
+                            losses:                    teamRecord.losses,
+                            clinchIndicator:           teamRecord.clinchIndicator,
+                            clinched:                  teamRecord.clinched,
+                            eliminationNumber:         teamRecord.eliminationNumber,
+                            wildCardEliminationNumber: teamRecord.wildCardEliminationNumber,
+                            magicNumber:               teamRecord.magicNumber ?? "",
+                            
+                            location: teamInfo.lookupTeamById(teamRecord.team.id)?.location ?? "???",
                             streak: teamRecord.streak?.streakCode ?? "",
                             gamesBack:  (teamRecord.gamesBack === "-") ? 0 : +teamRecord.gamesBack, // string to number
+                            lastTen: lastTen,
                         };
                         conferences[conference as keyof Conferences][division as keyof Divisions].push(teamData);
                     }
