@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import axios from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { LoggerInterface } from "./Logger";
 import { KacheInterface } from "./Kache";
-import { AxiosRequestConfig } from "axios";
-import { AxiosResponse } from "axios";
-import { TeamInfo } from "./TeamInfo";
+import { mlbinfo } from "mlbinfo";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 // const testJSONData = require("../sample-standings.json");
@@ -79,7 +77,7 @@ interface SplitRecord {
     pct: string;               // ".600"
 }
 
-export interface Conferences {
+export interface LeagueData {
     "AL": Divisions;
     "NL": Divisions;
 }
@@ -113,15 +111,15 @@ export class BaseballStandingsData {
         this.cache = cache;
     }    
     
-    public async getStandingsData(year: number): Promise<Conferences | null> {
+    public async getStandingsData(year: number): Promise<LeagueData | null> {
         try {
-            let conferences: Conferences | null = this.cache.get("standings") as Conferences;
-            if (conferences !== null) {
-                return conferences;
+            let leagueData: LeagueData | null = this.cache.get("standings") as LeagueData;
+            if (leagueData !== null) {
+                return leagueData;
             }
 
             //const conferences: 
-            conferences = {
+            leagueData = {
                 "AL": {
                     "E": [],
                     "C": [],
@@ -159,7 +157,7 @@ export class BaseballStandingsData {
                             feedRecords = res.data?.records;
                         } 
                     })
-                    .catch((error) => {
+                    .catch((error: any) => {
                         this.logger.warn(`BaseballStandingsData: No data: ${error})`);
                     });
                 
@@ -169,12 +167,10 @@ export class BaseballStandingsData {
                 }
                 // Loop through all the teams adding them to the division within each conference
                 // Teams are given in the order of standing within each conference/division (1 2 3 4 5  or  1 2 2 3 4)
-                
-                const teamInfo = new TeamInfo();
 
                 for (const feedRecord of feedRecords) { 
-                    const conference = teamInfo.lookupConferenceById(feedRecord.league.id)?.abbreviation;
-                    const division   = teamInfo.lookupDivisionById(feedRecord.division.id)?.abbreviation;
+                    const conference = mlbinfo.getLeagueById(feedRecord.league.id)?.abbreviation;
+                    const division   = mlbinfo.getDivisionById(feedRecord.division.id)?.abbreviation;
 
                     for (const teamRecord of feedRecord.teamRecords) {
                         this.logger.verbose(`BaseballStandingsData: adding team: ${teamRecord.team.id}`);
@@ -197,12 +193,12 @@ export class BaseballStandingsData {
                             wildCardEliminationNumber: teamRecord.wildCardEliminationNumber,
                             magicNumber:               teamRecord.magicNumber ?? "",
                             
-                            location: teamInfo.lookupTeamById(teamRecord.team.id)?.location ?? "???",
+                            location: mlbinfo.getTeamById(teamRecord.team.id)?.franchiseName ?? "???",
                             streak: teamRecord.streak?.streakCode ?? "",
                             gamesBack:  (teamRecord.gamesBack === "-") ? 0 : +teamRecord.gamesBack, // string to number
                             lastTen: lastTen,
                         };
-                        conferences[conference as keyof Conferences][division as keyof Divisions].push(teamData);
+                        leagueData[conference as keyof LeagueData][division as keyof Divisions].push(teamData);
                     }
                 }   
             } 
@@ -215,10 +211,13 @@ export class BaseballStandingsData {
             
             // this.logger.verbose(`BaseballStandingsData: Full: ${JSON.stringify(standingsJSON, null, 4)}`);
 
-            return conferences;
-        } catch(error: any) {
-            this.logger.error(`BaseballStandingsData: Error parsing data: ${error}`);
-            this.logger.error(error.stack);
+            return leagueData;
+        } catch (e) {
+            if (e instanceof Error) {
+                this.logger.error(`BaseballStandingsData: ${e.stack}`);
+            } else {
+                this.logger.error(`${e}`);
+            }
             return null;
         }
     }

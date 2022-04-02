@@ -5,7 +5,8 @@ import path from "path";
 import * as pure from "pureimage";
 import { LoggerInterface } from "./Logger";
 import { KacheInterface } from "./Kache";
-import { BaseballStandingsData, Conferences, Divisions, TeamData } from "./BaseballStandingsData";
+import { BaseballStandingsData, LeagueData, Divisions, TeamData } from "./BaseballStandingsData";
+import { mlbinfo } from "mlbinfo";
 
 export interface ImageResult {
     imageType: string;
@@ -55,7 +56,7 @@ export class BaseballStandingsImage {
         }
     }
 
-    public async getImage(standingsArray: Conferences, conf: keyof Conferences, div: keyof Divisions): Promise<ImageResult> {
+    public async getImage(leagueData: LeagueData, conf: keyof LeagueData, div: keyof Divisions, venue = ""): Promise<ImageResult> {
         let title: string;
         if      (div === "E") { title = `${conf} EAST`;}
         else if (div === "C") { title = `${conf} CENTRAL`;}
@@ -67,7 +68,7 @@ export class BaseballStandingsImage {
 
         //const standingsArray: Conferences | null = await this.standingsData.getStandingsData();
 
-        if (standingsArray === null) {
+        if (leagueData === null) {
             this.logger.warn("BaseballStandingsImage: Failed to get data, no image available.\n");
             return {imageType: "", imageData: null};
         }
@@ -75,11 +76,21 @@ export class BaseballStandingsImage {
         const imageHeight = 1080; 
         const imageWidth  = 1920; 
         
-        const backgroundColor     = "#4f7359"; //"#698785";              // Fenway Green
-        const boxBackgroundColor  = "#466850"; //"rgb(95,  121,  120)";  // Fenway Green - Dark p.setColor(Color.rgb(0x5F, 0x79, 0x78));
-        const titleColor          = "rgb(255, 255,  255)"; 
-        const borderColor         = "rgb(255, 255,  255)";
-        
+        let backgroundColor     = "#0066cc";               // bluish
+        let boxBackgroundColor  = "#004D99";               // darker bluish
+        let titleColor          = "#E0E0E0"; 
+        let borderColor         = "rgb(255, 255,  255)";
+
+        if (venue !== "") {
+            const venueData = mlbinfo.getVenueByShortName(venue);
+            if (typeof venueData !== "undefined") {
+                backgroundColor    = venueData.backgroundColor;
+                boxBackgroundColor = venueData.backgroundColor2;
+                titleColor         = venueData.textColor;
+                borderColor        = venueData.accentColor;
+            } 
+        }
+
         const largeFont  = "140px 'OpenSans-Bold'";   // Title
         const mediumFont = "100px 'OpenSans-Bold'";   // Other text
         const smallFont  = "24px 'OpenSans-Bold'";   
@@ -179,7 +190,7 @@ export class BaseballStandingsImage {
         ctx.fillStyle = titleColor;
         ctx.font = mediumFont;
         for (let i = 0; i < 5; i++) {
-            const teamData = standingsArray[conf][div][i];
+            const teamData = leagueData[conf][div][i];
             const city      = teamData.location;
             const won       = teamData.wins + "";
             const lost      = teamData.losses + "";

@@ -5,7 +5,7 @@ import { LoggerInterface } from "./Logger";
 import { KacheInterface } from "./Kache";
 import { ImageWriterInterface } from "./SimpleImageWriter";
 import { BaseballStandingsImage, ImageResult } from "./BaseballStandingsImage";
-import { BaseballStandingsData, Conferences, Divisions } from "./BaseballStandingsData";
+import { BaseballStandingsData, LeagueData, Divisions } from "./BaseballStandingsData";
 
 export class BaseballStandingsBuilder {
     private logger: LoggerInterface;
@@ -25,7 +25,7 @@ export class BaseballStandingsBuilder {
     public async CreateImages(): Promise<boolean>{
         try {
             const now = new Date();
-            const standingsArray: Conferences | null = await this.standingsData.getStandingsData(now.getFullYear());
+            const standingsArray: LeagueData | null = await this.standingsData.getStandingsData(now.getFullYear());
             if (standingsArray === null) {
                 this. logger.error("BaseballStandingsBuilder: no data.");
                 return false;
@@ -35,7 +35,7 @@ export class BaseballStandingsBuilder {
     
             for (const conf of ["AL", "NL"]) {
                 for (const div of ["E", "C", "W"]) {
-                    const result: ImageResult = await baseballStandingsImage.getImage(standingsArray as Conferences, conf as keyof Conferences, div as keyof Divisions);            
+                    const result: ImageResult = await baseballStandingsImage.getImage(standingsArray as LeagueData, conf as keyof LeagueData, div as keyof Divisions);            
 
                     if (result !== null && result.imageData !== null ) {
                         const fileName = `standings-${conf}-${div}.jpg`;
@@ -46,9 +46,24 @@ export class BaseballStandingsBuilder {
                     }
                 }
             }
-        } catch (e: any) {
-            this.logger.error(`BaseballStandingsBuilder: exception: ${e}`);
-            this.logger.error(e.stack);
+
+            // One more for now
+            const result: ImageResult = await baseballStandingsImage.getImage(standingsArray as LeagueData, "AL", "E", "Fenway");            
+
+            if (result !== null && result.imageData !== null ) {
+                const fileName = "standings-Fenway.jpg";
+                this.logger.info(`BaseballStandingsBuilder: Writing: ${fileName}`);
+                this.writer.saveFile(fileName, result.imageData.data);
+            } else {
+                this. logger.error("BaseballStandingsBuilder: no image for Fenway");
+            }
+
+        } catch (e) {
+            if (e instanceof Error) {
+                this.logger.error(`BaseballStandingsBuilder: ${e.stack}`);
+            } else {
+                this.logger.error(`${e}`);
+            }
             return false;
         }
         return true;

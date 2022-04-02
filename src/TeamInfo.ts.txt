@@ -33,14 +33,6 @@ export interface Conference {
 
 type Conferences = Conference[];
 
-export interface Division {
-    name: string;
-    abbreviation: string;
-    id: string; 
-    conferenceAbbreviation: string;
-    teams: Array<string>; 
-}
-
 export class TeamInfo {
     /**
      * Lookup a Team by its abbreviation
@@ -201,7 +193,7 @@ const teamsTable: Teams = [
         id: "110",
         name: "Baltimore Orioles",
         abbreviation: "BAL",
-        location: "Balimore",
+        location: "Baltimore",
         conferenceAbbreviation: "AL",
         divisionAbbreviation: "E",
         backgroundColor: "#DF4601",
