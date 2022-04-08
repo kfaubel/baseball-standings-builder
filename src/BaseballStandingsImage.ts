@@ -195,7 +195,7 @@ export class BaseballStandingsImage {
             const won       = teamData.wins + "";
             const lost      = teamData.losses + "";
             const lastTen    = teamData.lastTen; 
-            const gamesBack: string   = teamData.gamesBack === 0 ? "-" : Math.floor(teamData.gamesBack) + "";
+            const gamesBack: string   = Math.floor(teamData.gamesBack) === 0 ? "-" : Math.floor(teamData.gamesBack) + "";
             const gamesHalf =  (Math.floor(teamData.gamesBack) === teamData.gamesBack) ? "" : "\u00BD";
 
             const rowY       = rowOffsetY + (i * rowSpacing) + textOffsetInBoxY;        
@@ -205,7 +205,7 @@ export class BaseballStandingsImage {
             const lostX      = lostOffsetX +      (lostBoxWidth -      ctx.measureText(lost).width) / 2;
             const gamesBackX = gamesBackOffsetX + (gamesBackBoxWidth - ctx.measureText(gamesBack).width) / 2;
             const gamesHalfX = gamesHalfOffsetX + (gamesHalfBoxWidth - ctx.measureText(gamesHalf).width) / 2;
-            const lastTenX    = lastTenOffsetX +    (lastTenBoxWidth -    ctx.measureText(lastTen).width) / 2;
+            const lastTenX   = lastTenOffsetX +   (lastTenBoxWidth -   ctx.measureText(lastTen).width) / 2;
             
             ctx.fillText(city,      cityX,       rowY);
             ctx.fillText(won,       wonX,        rowY);
