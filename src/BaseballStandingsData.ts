@@ -173,14 +173,14 @@ export class BaseballStandingsData {
                     const division   = mlbinfo.getDivisionById(feedRecord.division.id)?.abbreviation;
 
                     for (const teamRecord of feedRecord.teamRecords) {
-                        this.logger.verbose(`BaseballStandingsData: adding team: ${teamRecord.team.id}`);
+                        this.logger.verbose(`BaseballStandingsData: adding team: ${teamRecord.team.name}`);
                         
                         const lastTenRecord: SplitRecord | undefined = teamRecord.records.splitRecords.find(
                             (splitRecord: SplitRecord) => {
-                                splitRecord.type === "lastTen";
+                                return (splitRecord.type === "lastTen");
                             }
                         );
-
+                        
                         const lastTen = lastTenRecord !== undefined ? `${lastTenRecord.wins}-${lastTenRecord.losses}` : "";
 
                         // Pick out the values we need.  Some are just a copy, some are computed
