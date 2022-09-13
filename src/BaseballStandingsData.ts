@@ -32,6 +32,11 @@ import { mlbinfo } from "mlbinfo";
 //         }, ... 3 records total for the 3 divisions
 //     ]
 // }
+//
+// Clinch indicator
+//   z - yes (division or wildcard)
+//   y - division
+//   w - wildcard
 
 type FeedRecords = {
     league: {
@@ -187,7 +192,7 @@ export class BaseballStandingsData {
                         const teamData: TeamData = {
                             wins:                      teamRecord.wins,
                             losses:                    teamRecord.losses,
-                            clinchIndicator:           teamRecord.clinchIndicator,
+                            clinchIndicator:           teamRecord.clinchIndicator ?? "",
                             clinched:                  teamRecord.clinched,
                             eliminationNumber:         teamRecord.eliminationNumber,
                             wildCardEliminationNumber: teamRecord.wildCardEliminationNumber,

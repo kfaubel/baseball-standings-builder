@@ -191,7 +191,7 @@ export class BaseballStandingsImage {
         ctx.font = mediumFont;
         for (let i = 0; i < 5; i++) {
             const teamData = leagueData[conf][div][i];
-            const city      = teamData.location;
+            const city      = (teamData.clinchIndicator === "") ? teamData.location : teamData.clinchIndicator + " " + teamData.location;
             const won       = teamData.wins + "";
             const lost      = teamData.losses + "";
             const lastTen    = teamData.lastTen; 
