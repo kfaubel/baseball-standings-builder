@@ -67,7 +67,7 @@ export class Kache implements KacheInterface {
 
     public get(key: string): unknown {
         if (this.cacheStorage[key] !== undefined) {
-            const cacheItem: KacheItem = this.cacheStorage[key as keyof CacheStorage];
+            const cacheItem: KacheItem = this.cacheStorage[key as keyof KacheStorage];
 
             const expiration: number = cacheItem.expiration;
             const item: unknown    = cacheItem.item;
